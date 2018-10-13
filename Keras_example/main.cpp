@@ -43,14 +43,16 @@ int valid_function(PyObject *pFunc)
 class KerasModel
 {
 public:
-    KerasModel(std::string module, std::string function)
+    KerasModel(std::string module_name, std::string class_name,
+        std::string function_name)
     {
+        // Initialize the Python interpreter
         Py_Initialize();
         PyRun_SimpleString("import sys");
         PyRun_SimpleString("sys.path.append(\".\")");
 
-        // Load the Python module
-        PyObject *pName = PyUnicode_DecodeFSDefault(module.c_str());
+        // Load the Python module and get a pointer to the module
+        PyObject *pName = PyUnicode_DecodeFSDefault(module_name.c_str());
         pModule = PyImport_Import(pName);
         Py_DECREF(pName);
 
@@ -58,7 +60,14 @@ public:
             throw runtime_error("Failed to load module");
         }
 
-        pFunc = PyObject_GetAttrString(pModule, function.c_str());
+        // Get a pointer to the `Model' class
+        pInstance = PyObject_GetAttrString(pModule, class_name.c_str());
+        
+        // Initialize instance of `Model'
+        pInstance = PyObject_CallObject(pInstance, NULL);
+
+        // Get a pointer to the `predict' member function of `Model'
+        pFunc = PyObject_GetAttrString(pInstance, function_name.c_str());
 
         if (!valid_function(pFunc)) {
             throw runtime_error("Cannot find function");
@@ -67,7 +76,7 @@ public:
 
     double predict(array<double, 6> input)
     {
-        // Convert the input to a Python tuple
+        // Convert the input array to a Python tuple
         PyObject *pArgs = PyTuple_New(6);
         PyObject *pValue;
 
@@ -82,20 +91,20 @@ public:
             PyTuple_SetItem(pArgs, i, pValue);
         }
 
-        // Call the predict function in Python
+        // Call the `predict' member function of `Model'
         pValue = PyObject_CallObject(pFunc, pArgs);
 
         Py_DECREF(pArgs);
 
         if (pValue != NULL) {
             double result = PyFloat_AsDouble(pValue);
-            
+
             Py_DECREF(pValue);
 
             return result;
         } else {
             Py_DECREF(pValue);
-            
+
             throw runtime_error("Call failed");
         }
     }
@@ -103,19 +112,21 @@ public:
     ~KerasModel()
     {
         Py_DECREF(pFunc);
+        Py_DECREF(pInstance);
         Py_DECREF(pModule);
         Py_FinalizeEx();
     }
 
     // Data members
     PyObject *pModule;
+    PyObject *pInstance;
     PyObject *pFunc;
 };
 
 
 int main()
 {
-    KerasModel keras_model("model", "predict");
+    KerasModel keras_model("model", "Model", "predict");
 
     array<double, 6> input = {0.1, 0.2, 0.3, 0.15, 0.25, 0.35};
 

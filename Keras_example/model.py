@@ -11,7 +11,7 @@ class Model(object):
 
 
     def predict(self, a, b, c, d, e, f):
-        # Pick inputs into list
+        # Pack inputs into list
         input = [a, b, c, d, e, f]
 
         # Turn list into 2D numpy array
@@ -25,14 +25,8 @@ class Model(object):
         return prediction[0, 0]
 
 
-m = Model()
-
-
-def predict(a, b, c, d, e, f):
-    return m.predict(a, b, c, d, e, f)
-
-
 def main():
+    m = Model()
     print(m.predict(0.1, 0.2, 0.3, 0.15, 0.25, 0.35))
 
 
