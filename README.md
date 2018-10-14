@@ -1,6 +1,6 @@
 # Using Keras from C++
 
-This repository shows how Keras models might be used to make predictions from within a C++ code base. The solution is straightforward: the Python/C API is used to initialize an instance of a class wrapped around the Keras model. The Keras model is loaded once and stays in memory until the instance of the wrapper class is dereferenced. Therefore, many predictions may be made without the overhead of reloading the Keras model.
+This repository shows how Keras models might be used to make predictions from within a C++ code base. The solution is straightforward: the Python/C API is used to initialize an instance of a class wrapped around the Keras model. The Keras model is loaded once and stays in memory as long as desired. Therefore, many predictions may be made without the overhead of reloading the Keras model.
 
 ## What's in this repository?
 
